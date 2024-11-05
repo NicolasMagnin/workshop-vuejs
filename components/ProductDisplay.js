@@ -6,6 +6,7 @@ app.component('product-display', {
             required: true,
         },
     },
+    emits: ['add-to-cart', 'remove-from-cart'],
     template:
     /*html*/
     `
@@ -33,24 +34,17 @@ app.component('product-display', {
           <img height="50" alt="carouselImage.text" :src="carouselImage.image" />
         </span>
       </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Quantity</th>
-            <th>Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="pack in packs" :key="pack.id">
-            <td>{{ pack.quantity }}</td>
-            <td>{{ pack.price }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <product-details :packs="packs"></product-details>
       <p>Shipping: {{ shipping }}</p>
         <button v-on:click="addToCart" :style="styles.roundButton" :disabled="outOfStock" :class="{ disabledButton: outOfStock }">Ajouter au panier</button>
         <button v-on:click="removeFromCart">Retirer du panier</button>
+
+        <div class="col-6 offset-3">
+            <review-form @review-submitted="addReview"></review-form>
+        </div>
+        <div v-if="reviews.length > 0" class="col-6 offset-3">
+            <review-list :reviews="reviews"></review-list>
+        </div>
     `,
     data() {
         return {
@@ -113,16 +107,24 @@ app.component('product-display', {
                     cursor: 'pointer'
                 },
             },
+            reviews: [],
         };
     },
     methods: {
-        addToCart: function() {
-            this.cart += 1;
+        addToCart: function () {
+            this.$emit('add-to-cart', 
+                this.carouselImages[this.selectedImage].id
+            );
             this.stock -= 1;
         },
         removeFromCart: function() {
-            this.cart -= 1;
+            this.$emit('remove-from-cart', 
+                this.carouselImages[this.selectedImage].id
+            );
             this.stock += 1;
+        },
+        addReview: function(review) {
+            this.reviews.push(review);
         },
         updateImage: function(index) {
             this.selectedImage = index;
